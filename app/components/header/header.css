@@ -1,0 +1,16 @@
+a.active{
+    font-weight: bold;
+    color: blue;
+}
+
+header nav {
+    display: block;
+    overflow: hidden;
+    border-bottom: 1px solid #cccccc;
+}
+
+header nav li{
+    float: left;
+    padding : 10px;
+    list-style: none;
+}

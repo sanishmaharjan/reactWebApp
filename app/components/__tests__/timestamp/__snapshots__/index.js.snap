@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TimeStamp render correctly 1`] = `
+<span>
+  19:48
+</span>
+`;
