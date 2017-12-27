@@ -4,21 +4,25 @@
     "description": "React web application sample",
     "repository": "https://github.com/sanishmaharjan/reactWebApp",
     "license": "MIT",
+    "NODE_PATH": "./app",
     "scripts": {
         "webpack": "webpack -wd",
         "build-webpack": "webpack -p",
-        "test": "jest",
-        "test-watch": "jest --watch",
-        "test-coverage": "jest --coverage"
+        "test": "NODE_PATH=./app jest",
+        "test-watch": "NODE_PATH=./app jest --watch",
+        "test-coverage": "NODE_PATH=./app jest --coverage"
     },
     "babel": {
         "presets": [
             "react",
-            ["env", {
-                "targets": {
-                    "node": "current"
+            [
+                "env",
+                {
+                    "targets": {
+                        "node": "current"
+                    }
                 }
-            }],
+            ],
             "stage-2"
         ]
     },
@@ -39,11 +43,12 @@
         "babel-preset-stage-2": "^6.24.1",
         "css-loader": "^0.28.7",
         "ejs": "^2.5.7",
+        "lodash": "^4.17.4",
         "lodash.pickby": "^4.6.0",
+        "prop-types": "^15.6.0",
         "react": "^16.2.0",
         "react-dom": "^16.2.0",
         "react-router-dom": "^4.2.2",
-        "prop-types": "^15.6.0",
         "style-loader": "^0.19.0",
         "webpack": "^3.9.1"
     }

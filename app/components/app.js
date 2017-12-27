@@ -2,10 +2,12 @@ import React from 'react';
 import {Switch, Route} from 'react-router-dom';
 import PropTypes from 'prop-types';
 
-import Home from './home';
-import StateApi from '../utilities/stateApi';
+import Home from 'components/home';
+import Article from 'components/article';
+import GitCard from 'components/gitCard';
+import StateApi from 'utilities/stateApi';
 
-class App extends React.Component {
+export default class App extends React.Component {
     // Define child contextType
     static childContextTypes = {
         store: PropTypes.object
@@ -65,15 +67,10 @@ class App extends React.Component {
     render() {
         return <div>
             <Switch>
-                <Route exact path='/reactWebApp/app/' component={Home}/>
+                <Route exact path='/' component={Home}/>
+                <Route exact path='/article' component={Article}/>
+                <Route exact path='/gitCard' component={GitCard}/>
             </Switch>
         </div>;
     }
 }
-
-// Set default props for the class
-App.defaultProps = {
-    color: 'blue'
-};
-
-export default App;
