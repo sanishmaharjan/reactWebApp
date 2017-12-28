@@ -2,6 +2,7 @@
   "name": "reactWebApp",
   "description": "Sample ReactJs application",
   "scripts": {
+    "postdeploy": "npm install --g yarn && yarn install && yarn add jest && yarn test"
   },
   "env": {
   },
