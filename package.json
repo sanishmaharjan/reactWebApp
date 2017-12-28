@@ -13,9 +13,6 @@
         "test-watch": "NODE_PATH=./app jest --watch",
         "test-coverage": "NODE_PATH=./app jest --coverage"
     },
-    "engines": {
-        "node": "9.2.0"
-    },
     "babel": {
         "presets": [
             "react",

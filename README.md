@@ -1,8 +1,11 @@
-### Simple React web application
+## Simple React web application
 > This is sample reactJs application for beginner..
 
-## Demo
+### Demo Url
 - https://mjsanish-webapp.herokuapp.com/#/
+
+### Travis CI
+- https://travis-ci.org/sanishmaharjan/reactWebApp
 
 ## Development
 #### Local Setup Instructions
