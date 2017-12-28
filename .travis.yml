@@ -1,5 +1,4 @@
-language:
-  - node_js
+language: node_js
 before_script:
   - npm install --g yarn
   - yarn install
@@ -7,4 +6,4 @@ script:
   - yarn build-webpack
   - yarn test-coverage
 node_js:
-  - "7"
+  - "9"
