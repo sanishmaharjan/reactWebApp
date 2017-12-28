@@ -1,19 +1,11 @@
 {
   "name": "reactWebApp",
   "description": "Sample ReactJs application",
-  "scripts": {
-    "postdeploy": "npm install --g yarn && yarn install && yarn add jest && yarn test"
-  },
-  "env": {
-  },
   "formation": {
     "web": {
       "quantity": 1
     }
   },
-  "addons": [
-
-  ],
   "buildpacks": [
     {
       "url": "heroku/nodejs"
