@@ -5,7 +5,7 @@
     "repository": "https://github.com/sanishmaharjan/reactWebApp",
     "license": "MIT",
     "scripts": {
-        "start": "node server.js",
+        "start": "webpack -p && node server.js",
         "webpack": "webpack -wd",
         "build-webpack": "webpack -p",
         "test": "NODE_PATH=./app jest",
