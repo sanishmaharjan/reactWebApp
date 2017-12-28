@@ -6,4 +6,4 @@ script:
   - yarn build-webpack
   - yarn test-coverage
 node_js:
-  - "9"
+  - "7"
