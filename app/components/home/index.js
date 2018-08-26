@@ -29,7 +29,7 @@ class Home extends React.Component {
     render(){
         return <div>
             <Header path={this.props.match.path}/>
-            <p>Welcome to home page.</p>
+            <p>Hi all, welcome to github.</p>
             <p>Current Time: <TimeStamp time={this.getCurrentTime()}/> </p>
         </div>;
     }
