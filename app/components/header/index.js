@@ -19,7 +19,7 @@ class Header extends React.PureComponent {
             <nav>
                 <ul>
                     <li><Link to='/' replace={this.props.path === '/'} className={this.linkClass('/')}>Home page</Link></li>
-                    <li><Link to='/article' replace={this.props.path === '/article'} className={this.linkClass('/article')}>Articles list</Link></li>
+                    <li><Link to='/article' replace={this.props.path === '/article'} className={this.linkClass('/article')}>Articles list</></li>
                     <li><Link to='/gitCard' className={this.linkClass('/gitCard')}>Cards list</Link></li>
                 </ul>
             </nav>
