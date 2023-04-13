@@ -11,12 +11,15 @@ jobs:
   Web-App-Build:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Trigger web-app build on ${{ github.event_name }} event."
-      - run: echo "Checkout to yourbranch ${{ github.ref }}."
+      - name: Get details
+        run: |
+          echo "Trigger web-app build on ${{ github.event_name }} event."
+          echo "Checkout to yourbranch ${{ github.ref }}."
+
       - name: Check out repository code
         uses: actions/checkout@v3
         
       - name: Install the dependencies
         run: |
           echo "Installing the dependancies on ${{ runner.os }} server hosted by GitHub!"
-          yarn install
+          yarn
