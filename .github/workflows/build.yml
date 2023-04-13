@@ -38,5 +38,5 @@ jobs:
       - name: Run bundle-stats
         uses: vio/bundle-stats-action@v1
         with:
-          webpack-stats-path: './reactWebApp/app/build/stats.json'
+          webpack-stats-path: './stats.json'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
