@@ -18,19 +18,13 @@ jobs:
 
       - name: Check out repository code
         uses: actions/checkout@v3
-
-      - name: Get yarn cache directory path
-          id: yarn-cache-dir-path
-          run: |
-            echo "build_dir=$(yarn cache dir)" >> $GITHUB_ENV
-            echo $(yarn cache dir)
         
       - name: Cache
         id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
         uses: actions/cache@v2.1.8
         with:
           # A list of files, directories, and wildcard patterns to cache and restore
-          path: ${{ env.build_dir }}
+          path: "./node_modules"
           key: yarn-${{ hashFiles('./yarn.lock') }}
         
       - name: Install the dependencies
