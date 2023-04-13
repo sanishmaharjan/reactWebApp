@@ -34,3 +34,9 @@ jobs:
 
       - name: build webpack
         run : yarn build-webpack
+
+      - name: Run bundle-stats
+        uses: vio/bundle-stats-action@v1
+        with:
+          webpack-stats-path: 'app/build/stats.json'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}

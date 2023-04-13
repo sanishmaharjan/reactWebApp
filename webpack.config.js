@@ -1,5 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
+const { StatsWriterPlugin } = require('webpack-stats-plugin');
 
 const config = {
     resolve: {
@@ -40,6 +41,9 @@ const config = {
     plugins: [
         new webpack.optimize.CommonsChunkPlugin({
             name: 'vendor'
+        }),
+        new StatsWriterPlugin({
+            filename: 'stats.json'
         })
     ]
 };
