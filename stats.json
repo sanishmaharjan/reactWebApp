@@ -1,0 +1,6 @@
+{
+  "assetsByChunkName": {
+    "app": "app.js",
+    "vendor": "vendor.js"
+  }
+}
