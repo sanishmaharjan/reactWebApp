@@ -35,16 +35,10 @@ jobs:
       - name: build webpack
         run : yarn build-webpack
 
-      - name: Run bundle-stats
-        uses: vio/bundle-stats-action@v1
-        with:
-          webpack-stats-path: 'app/build/stats.json'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Upload stats.json
         uses: actions/upload-artifact@v1
         with:
-          name: build-head
+          name: head-stats
           path: 'app/build/stats.json'
 
   build-base-web-app:
@@ -75,7 +69,7 @@ jobs:
       - name: Upload stats.json
         uses: actions/upload-artifact@v1
         with:
-          name: build-base
+          name: base-stats
           path: 'app/build/stats.json'
 
   compare:
