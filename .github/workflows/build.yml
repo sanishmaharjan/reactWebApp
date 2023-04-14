@@ -45,6 +45,21 @@ jobs:
     name: 'Build base'
     runs-on: ubuntu-latest
     steps:
+      - name: Download base artifact
+        uses: actions/download-artifact@v2.1.1
+        with:
+          name: ${{ github.base_ref }}.${{ github.sha }}
+
+      - name: Check file existence
+        id: check_files
+        uses: andstor/file-existence-action@v1
+        with:
+          files: '${{ github.base_ref }}${{ github.sha }}/stats.json'
+
+      - name: File exists
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: echo '${{ github.base_ref }}${{ github.sha }}/stats.json'
+
       - uses: actions/checkout@v3
         with:
           ## Here we do not checkout the current branch, but we checkout the base branch.
