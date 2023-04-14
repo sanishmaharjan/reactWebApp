@@ -3,5 +3,4 @@
 /node_modules/
 /build/
 /coverage/
-/yarn.lock
 /app/build/

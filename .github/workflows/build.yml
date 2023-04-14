@@ -1,0 +1,73 @@
+name: Build
+run-name: ${{ github.actor }} start build webApp 🚀
+on:
+  pull_request:
+    types: [synchronize, closed, opened]
+    branches:
+      - dev
+      - master
+  
+jobs:
+  Web-App-Build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get details
+        run: |
+          echo "Trigger web-app build on ${{ github.event_name }} event."
+          echo "Checkout to yourbranch ${{ github.ref }}."
+
+      - name: Check out repository code
+        uses: actions/checkout@v3
+        
+      - name: Cache
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        uses: actions/cache@v2.1.8
+        with:
+          # A list of files, directories, and wildcard patterns to cache and restore
+          path: "./node_modules"
+          key: yarn-${{ hashFiles('./yarn.lock') }}
+        
+      - name: Install the dependencies
+        run: |
+          echo "Installing the dependancies on ${{ runner.os }} server hosted by GitHub!"
+          yarn
+
+      - name: build webpack
+        run : yarn build-webpack
+
+      - name: Run bundle-stats
+        uses: vio/bundle-stats-action@v1
+        with:
+          webpack-stats-path: 'app/build/stats.json'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-base:
+    name: 'Build base'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ## Here we do not checkout the current branch, but we checkout the base branch.
+          ref: ${{ github.base_ref }}
+
+      - name: Cache
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        uses: actions/cache@v2.1.8
+        with:
+          # A list of files, directories, and wildcard patterns to cache and restore
+          path: "./node_modules"
+          key: yarn-${{ hashFiles('./yarn.lock') }}
+
+      - name: Install the dependencies
+        run: |
+          echo "Installing the dependancies on ${{ runner.os }} server hosted by GitHub!"
+          yarn
+
+      - name: build webpack
+        run: yarn build-webpack
+
+      - name: Upload stats.json
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ github.head_ref }}.${{ github.sha }}
+          path: 'app/build/stats.json'
