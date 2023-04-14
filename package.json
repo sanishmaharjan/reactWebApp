@@ -8,7 +8,7 @@
         "start": "webpack -p && node server.js",
         "dev": "node server.js",
         "webpack": "webpack -wd",
-        "build-webpack": "webpack -p --json > stats.json",
+        "build-webpack": "webpack -p",
         "test": "NODE_PATH=./app jest",
         "test-watch": "NODE_PATH=./app jest --watch",
         "test-coverage": "NODE_PATH=./app jest --coverage"

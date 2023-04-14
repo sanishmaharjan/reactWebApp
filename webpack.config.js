@@ -43,7 +43,8 @@ const config = {
             name: 'vendor'
         }),
         new StatsWriterPlugin({
-            filename: 'stats.json'
+            filename: 'stats.json',
+            fields: ['assets', 'assetsByChunkName', 'chunks'],
         })
     ]
 };
