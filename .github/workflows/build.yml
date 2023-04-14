@@ -8,7 +8,7 @@ on:
       - master
   
 jobs:
-  Web-App-Build:
+  build-web-app:
     runs-on: ubuntu-latest
     steps:
       - name: Get details
@@ -47,7 +47,7 @@ jobs:
           name: build-head
           path: 'app/build/stats.json'
 
-  build-base:
+  build-base-web-app:
     name: 'Build base'
     runs-on: ubuntu-latest
     steps:
@@ -81,7 +81,7 @@ jobs:
   compare:
     name: 'Compare base & head bundle sizes'
     runs-on: ubuntu-latest
-    needs: [ build-base, build-head ]
+    needs: [ build-web-app, build-base-web-app ]
     steps:
       - uses: actions/checkout@v1
       - name: Download base artifact
