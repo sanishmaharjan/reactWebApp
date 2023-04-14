@@ -69,5 +69,5 @@ jobs:
       - name: Upload stats.json
         uses: actions/upload-artifact@v1
         with:
-          name: ${{ github.head_ref }}.${{ github.sha }}
+          name: ${{ github.base_ref }}.${{ github.sha }}
           path: 'app/build/stats.json'
