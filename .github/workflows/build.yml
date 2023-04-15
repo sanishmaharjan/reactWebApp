@@ -47,24 +47,29 @@ jobs:
     name: 'Build base web app'
     runs-on: ubuntu-latest
     steps:
-      - name: Check file existence
-        id: check_files
-        uses: andstor/file-existence-action@v1
-        with:
-          files: "assets/${{ env.URL }}"
-
-      - name: File exists
-        if: steps.check_files.outputs.files_exists == 'true'
-        run: echo "It exists !"
-
       - name: Check out base branch
         uses: actions/checkout@v3
         with:
           ## Here we do not checkout the current branch, but we checkout the base branch.
           ref: ${{ github.base_ref }}
 
+      - name: Check stats cache
+        id: stats-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        uses: actions/cache@v2.1.8
+        with:
+          # A list of files, directories, and wildcard patterns to cache and restore
+          path: "app/build/stats.json"
+          key: stats-${{ github.base_ref }}-${{ github.event.pull_request.base.sha }}
+
+      - name: Check file existence
+        id: check_files
+        uses: andstor/file-existence-action@v1
+        with:
+          files: "app/build/stats.json"
+
       - name: Check yarn cache
-        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        if: steps.check_files.outputs.files_exists != 'true'
+        id: yarn-cache
         uses: actions/cache@v2.1.8
         with:
           # A list of files, directories, and wildcard patterns to cache and restore
@@ -72,22 +77,17 @@ jobs:
           key: yarn-${{ hashFiles('./yarn.lock') }}
 
       - name: Install the dependencies
+        if: steps.check_files.outputs.files_exists != 'true'
         run: |
           echo "Installing the dependancies on ${{ runner.os }} server hosted by GitHub!"
           yarn
 
       - name: build webpack
+        if: steps.check_files.outputs.files_exists != 'true'
         run: yarn build-webpack
 
-      - name: Check yarn cache
-        id: stats-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
-        uses: actions/cache@v2.1.8
-        with:
-          # A list of files, directories, and wildcard patterns to cache and restore
-          path: "app/build/stats.json"
-          key: stats-${{ github.base_ref }}
-
       - name: Upload stats.json
+        if: steps.check_files.outputs.files_exists != 'true'
         uses: actions/upload-artifact@v2
         with:
           name: base-stats
