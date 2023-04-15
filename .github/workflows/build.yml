@@ -80,10 +80,10 @@ jobs:
 
       - name: Upload stats.json
         uses: actions/upload-artifact@v2
-          with:
-            name: base-stats
-            path: 'app/build/stats.json'
-            retention-days: 20
+        with:
+          name: base-stats
+          path: 'app/build/stats.json'
+          retention-days: 20
 
   compare:
     name: 'Compare base & head bundle sizes'
