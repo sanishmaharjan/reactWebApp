@@ -9,6 +9,7 @@ on:
   
 jobs:
   build-web-app:
+    name: 'Build web app'
     runs-on: ubuntu-latest
     steps:
       - name: Get details
@@ -42,9 +43,24 @@ jobs:
           path: 'app/build/stats.json'
 
   build-base-web-app:
-    name: 'Build base'
+    name: 'Build base web app'
     runs-on: ubuntu-latest
     steps:
+      - name: Check if artifact exists
+        uses: rexdefuror/check_artifact_exists@v1.0.1
+        with:
+          name: base-stats
+
+      - name: Check file existence
+        id: check_files
+        uses: andstor/file-existence-action@v1
+        with:
+          files: "assets/${{ env.URL }}"
+
+      - name: File exists
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: echo "It exists !"
+
       - name: Check out base branch
         uses: actions/checkout@v3
         with:
@@ -68,10 +84,11 @@ jobs:
         run: yarn build-webpack
 
       - name: Upload stats.json
-        uses: actions/upload-artifact@v1
-        with:
-          name: base-stats
-          path: 'app/build/stats.json'
+        uses: actions/upload-artifact@v2
+          with:
+            name: base-stats
+            path: 'app/build/stats.json'
+            retention-days: 20
 
   compare:
     name: 'Compare base & head bundle sizes'
