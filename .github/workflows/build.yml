@@ -8,10 +8,96 @@ on:
       - master
   
 jobs:
+  build-web-app:
+    name: 'Build web app'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get details
+        run: |
+          echo "Trigger web-app build on ${{ github.event_name }} event."
+          echo "Checkout to yourbranch ${{ github.ref }}."
+
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Check yarn cache
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        uses: actions/cache@v2.1.8
+        with:
+          # A list of files, directories, and wildcard patterns to cache and restore
+          path: "./node_modules"
+          key: yarn-${{ hashFiles('./yarn.lock') }}
+
+      - name: Install the dependencies
+        run: |
+          echo "Installing the dependancies on ${{ runner.os }} server hosted by GitHub!"
+          yarn
+
+      - name: build webpack
+        run : yarn build-webpack
+
+      - name: Upload stats.json
+        uses: actions/upload-artifact@v1
+        with:
+          name: head-stats
+          path: 'app/build/stats.json'
+          retention-days: 20
+
+  build-base-web-app:
+    name: 'Build base web app'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check file existence
+        id: check_files
+        uses: andstor/file-existence-action@v1
+        with:
+          files: "assets/${{ env.URL }}"
+
+      - name: File exists
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: echo "It exists !"
+
+      - name: Check out base branch
+        uses: actions/checkout@v3
+        with:
+          ## Here we do not checkout the current branch, but we checkout the base branch.
+          ref: ${{ github.base_ref }}
+
+      - name: Check yarn cache
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        uses: actions/cache@v2.1.8
+        with:
+          # A list of files, directories, and wildcard patterns to cache and restore
+          path: "./node_modules"
+          key: yarn-${{ hashFiles('./yarn.lock') }}
+
+      - name: Install the dependencies
+        run: |
+          echo "Installing the dependancies on ${{ runner.os }} server hosted by GitHub!"
+          yarn
+
+      - name: build webpack
+        run: yarn build-webpack
+
+      - name: Check yarn cache
+        id: stats-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        uses: actions/cache@v2.1.8
+        with:
+          # A list of files, directories, and wildcard patterns to cache and restore
+          path: "app/build/stats.json"
+          key: stats-${{ github.base_ref }}
+
+      - name: Upload stats.json
+        uses: actions/upload-artifact@v2
+        with:
+          name: base-stats
+          path: 'app/build/stats.json'
+          retention-days: 20
+
   compare:
     name: 'Compare base & head bundle sizes'
     runs-on: ubuntu-latest
-    #needs: [ build-web-app, build-base-web-app ]
+    needs: [ build-web-app, build-base-web-app ]
     steps:
       - name: Download base artifact
         uses: actions/download-artifact@v1
