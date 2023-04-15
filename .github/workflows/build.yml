@@ -87,7 +87,6 @@ jobs:
         run: yarn build-webpack
 
       - name: Upload stats.json
-        if: steps.check_files.outputs.files_exists != 'true'
         uses: actions/upload-artifact@v2
         with:
           name: base-stats
