@@ -33,7 +33,7 @@ jobs:
       run: yarn build-webpack
 
     - name: Upload stats.json
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v2
       with:
         name: stats-${{ github.ref }}-${{ github.sha }}
         path: 'app/build/stats.json'
