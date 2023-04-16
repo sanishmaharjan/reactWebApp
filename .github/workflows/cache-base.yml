@@ -35,7 +35,7 @@ jobs:
     - name: Upload stats.json
       uses: actions/upload-artifact@v2
       with:
-        name: stats-${{ github.ref_name }}-${{ github.sha }}
+        name: stats-${{ github.ref_name }}
         path: 'app/build/stats.json'
         retention-days: 20
 
