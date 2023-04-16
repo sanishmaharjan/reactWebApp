@@ -26,7 +26,7 @@ jobs:
         with:
           path: |
             "./node_modules"
-          key: stats-${{ github.base_ref }}-${{ github.event.pull_request.base.sha }}
+          key: yarn-${{ github.base_ref }}
 
       - name: Install the dependencies
         run: |
