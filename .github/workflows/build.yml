@@ -22,7 +22,7 @@ jobs:
 
       - name: Restore cached
         id: cache-restore
-        uses: actions/cache@v3
+        uses: actions/cache/restore@v3
         with:
           path: "./node_modules"
           key: yarn-${{ github.base_ref }}
