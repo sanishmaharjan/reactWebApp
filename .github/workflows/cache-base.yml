@@ -44,4 +44,3 @@ jobs:
         # A list of files, directories, and wildcard patterns to cache and restore
         path: '${{ github.ref_name }}-stats.json'
         key: stats-${{ github.ref_name }}-${{ github.sha }}
-        restore-keys: yarn-${{ github.ref_name }}
