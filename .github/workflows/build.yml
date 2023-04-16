@@ -28,6 +28,7 @@ jobs:
           path: "./node_modules"
           key: stats-${{ github.base_ref }}-${{ github.event.pull_request.base.sha }}
           restore-keys: yarn-${{ github.base_ref }}
+          lookup-only: true
 
       - name: Install the dependencies
         run: |
@@ -36,10 +37,3 @@ jobs:
 
       - name: build webpack
         run : yarn build-webpack
-
-      - name: Upload stats.json
-        uses: actions/upload-artifact@v2
-        with:
-          name: stats-${{ github.ref_name }}-${{ github.sha }}
-          path: 'app/build/stats.json'
-          retention-days: 20
