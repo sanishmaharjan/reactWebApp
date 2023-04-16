@@ -15,8 +15,8 @@ jobs:
     - name: Check out repository code
       uses: actions/checkout@v3
 
-    - name: Restore yarn cache
-      id: yarn-cache-restore # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+    - name: yarn cache
+      id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
       uses: actions/cache@v3
       with:
         # A list of files, directories, and wildcard patterns to cache and restore
@@ -32,10 +32,16 @@ jobs:
     - name: build webpack
       run: yarn build-webpack
 
-    - name: Upload stats.json
-      uses: actions/upload-artifact@v2
-      with:
-        name: stats-${{ github.ref_name }}
-        path: 'app/build/stats.json'
-        retention-days: 20
+    - name: Copy stats.json
+      run: |
+        echo 'Copying app/build/stats.json -> ${{ github.ref_name }}-stats.json'
+        cp 'app/build/stats.json' '${{ github.ref_name }}-stats.json'
 
+    - name: yarn cache
+      id: stats-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+      uses: actions/cache@v3
+      with:
+        # A list of files, directories, and wildcard patterns to cache and restore
+        path: '${{ github.ref_name }}-stats.json'
+        key: stats-${{ github.ref_name }}-${{ github.sha }}
+        restore-keys: yarn-${{ github.ref_name }}
