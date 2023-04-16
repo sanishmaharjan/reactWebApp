@@ -15,13 +15,13 @@ jobs:
     - name: Check out repository code
       uses: actions/checkout@v3
 
-    - name: Check yarn cache
-      id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+    - name: Restore yarn cache
+      id: yarn-cache-restore # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
       uses: actions/cache@v3
       with:
         # A list of files, directories, and wildcard patterns to cache and restore
-        path: "./node_modules"
-        key: yarn-${{ github.ref_name }}
+        path: './node_modules'
+        key: yarn-${{ github.ref_name }}-${{ hashFiles('./yarn.lock') }}
         restore-keys: yarn-${{ github.ref_name }}
 
     - name: Install the dependencies
