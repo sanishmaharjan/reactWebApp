@@ -28,7 +28,6 @@ jobs:
           key: yarn-${{ github.base_ref }}-${{ hashFiles('./yarn.lock') }}
           restore-keys: yarn-${{ github.base_ref }}
 
-
       - name: Install the dependencies
         run: |
           echo "Installing the dependancies on ${{ runner.os }} server hosted by GitHub!"
@@ -37,7 +36,19 @@ jobs:
       - name: build webpack
         run : yarn build-webpack
 
-      - name: Download base artifact
-        uses: actions/download-artifact@v1
+      - name: Restore ${{ github.base_ref }}-stats.json from cached
+          id: stats-restore
+          uses: actions/cache/restore@v3
+          with:
+            path: '${{ github.ref_name }}-stats.json'
+            key: stats-${{ github.base_ref }}-${{ github.event.pull_request.base.sha }}
+
+      - name: Check file existence
+        id: check_files
+        uses: andstor/file-existence-action@v1
         with:
-          name: stats-${{ github.base_ref }}
+          files: '${{ github.ref_name }}-stats.json'
+
+      - name: Check yarn cache
+        if: steps.check_files.outputs.files_exists != 'true'
+        run: echo 'yes'
