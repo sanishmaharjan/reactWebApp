@@ -55,4 +55,4 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           base_stats_path: ${{ github.base_ref }}-stats.json
-          head_stats_path: .app/build/stats.json
+          head_stats_path: app/build/stats.json
