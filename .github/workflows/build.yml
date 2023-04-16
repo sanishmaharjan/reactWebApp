@@ -36,3 +36,8 @@ jobs:
 
       - name: build webpack
         run : yarn build-webpack
+
+      - name: Download base artifact
+        uses: actions/download-artifact@v1
+        with:
+          name: stats-${{ github.base_ref }}
