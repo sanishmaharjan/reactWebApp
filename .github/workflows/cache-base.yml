@@ -17,11 +17,11 @@ jobs:
 
     - name: Restore yarn cache
       id: yarn-cache-restore # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
-      uses: actions/cache/restore@v3
+      uses: actions/cache@v3
       with:
         # A list of files, directories, and wildcard patterns to cache and restore
         path: './node_modules'
-        key: yarn-${{ github.ref_name }}
+        key: yarn-${{ github.ref_name }}-${{ hashFiles('./yarn.lock') }}
         restore-keys: yarn-${{ github.ref_name }}
 
     - name: Install the dependencies
@@ -38,13 +38,4 @@ jobs:
         name: stats-${{ github.ref_name }}
         path: 'app/build/stats.json'
         retention-days: 20
-
-    - name: Save yarn cache
-      id: yarn-cache-save # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
-      uses: actions/cache/save@v3
-      with:
-        # A list of files, directories, and wildcard patterns to cache and restore
-        path: './node_modules'
-        key: yarn-${{ github.ref_name }}
-        restore-keys: yarn-${{ github.ref_name }}
 
