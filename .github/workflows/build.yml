@@ -24,8 +24,7 @@ jobs:
         id: cache-restore
         uses: actions/cache@v3
         with:
-          path: |
-            "./node_modules"
+          path: "./node_modules"
           key: yarn-${{ github.base_ref }}
 
       - name: Install the dependencies
