@@ -37,11 +37,11 @@ jobs:
         run : yarn build-webpack
 
       - name: Restore ${{ github.base_ref }}-stats.json from cached
-          id: stats-restore
-          uses: actions/cache/restore@v3
-          with:
-            path: '${{ github.ref_name }}-stats.json'
-            key: stats-${{ github.base_ref }}-${{ github.event.pull_request.base.sha }}
+        id: stats-restore
+        uses: actions/cache/restore@v3
+        with:
+          path: '${{ github.ref_name }}-stats.json'
+          key: stats-${{ github.base_ref }}-${{ github.event.pull_request.base.sha }}
 
       - name: Check file existence
         id: check_files
