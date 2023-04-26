@@ -47,6 +47,10 @@ build-base-web-app:
           name: base-stats
           path: 'app/build/stats.json'
           retention-days: 20
+     - name: Dump GitHub context
+       env:
+       GITHUB_CONTEXT: ${{ toJson(github) }}
+       run: echo "$GITHUB_CONTEXT"
 
   compare:
     name: 'Compare base & head bundle sizes'
