@@ -61,8 +61,8 @@ jobs:
           head_stats_path: app/build/stats.json
 
   cleanup:
-    name: 'Cleanup Caches'
     if: github.event.pull_request.merged
+    name: 'Cleanup Caches'
     runs-on: ubuntu-latest
     steps:
       - name: Get details
