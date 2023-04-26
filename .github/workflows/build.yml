@@ -24,7 +24,9 @@ jobs:
         id: cache-restore
         uses: actions/cache@v3
         with:
-          path: '**/node_modules'
+          path: |
+            "**/node_modules"
+            "temp.txt"
           key: yarn-${{ github.base_ref }}-${{ hashFiles('./yarn.lock') }}
           restore-keys: yarn-${{ github.base_ref }}
 
@@ -35,11 +37,6 @@ jobs:
 
       - name: build webpack
         run : yarn build-webpack
-
-      - name: Dump GitHub context
-        env: 
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo ${{ toJson(github) }}
 
       - name: Restore ${{ github.base_ref }}-stats.json from cached
         id: stats-restore
