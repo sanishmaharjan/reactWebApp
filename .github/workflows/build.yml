@@ -18,7 +18,7 @@ jobs:
           echo "Checkout to yourbranch ${{ github.ref }}."
 
       - name: Delete cache
-        if github.event.pull_request.merged
+        if: github.event.pull_request.merged
         uses: snnaplab/delete-branch-cache-action@v1
         with:
           # Specify explicitly because the ref at the time of merging will be a branch name such as 'main', 'develop'
