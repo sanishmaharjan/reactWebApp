@@ -62,16 +62,16 @@ jobs:
 
   cleanup:
     name: 'Cleanup Caches'
-      if: github.event.pull_request.merged
-      runs-on: ubuntu-latest
-      steps:
-        - name: Get details
-          run: |
-            echo "Trigger web-app build on ${{ github.event_name }} event."
-            echo "Checkout to yourbranch ${{ github.ref }}."
+    if: github.event.pull_request.merged
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get details
+        run: |
+          echo "Trigger web-app build on ${{ github.event_name }} event."
+          echo "Checkout to yourbranch ${{ github.ref }}."
 
-        - name: Delete cache
-          uses: snnaplab/delete-branch-cache-action@v1
-          with:
-            # Specify explicitly because the ref at the time of merging will be a branch name such as 'main', 'develop'
-            ref: refs/pull/${{ github.event.number }}/merge
+      - name: Delete cache
+        uses: snnaplab/delete-branch-cache-action@v1
+        with:
+          # Specify explicitly because the ref at the time of merging will be a branch name such as 'main', 'develop'
+          ref: refs/pull/${{ github.event.number }}/merge
