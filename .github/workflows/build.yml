@@ -37,8 +37,8 @@ jobs:
         run : yarn build-webpack
 
       - name: Dump GitHub context
-        env:
-        GITHUB_CONTEXT: ${{ toJson(github) }}
+        env: 
+          GITHUB_CONTEXT: ${{ toJson(github) }}
         run: echo ${{ toJson(github) }}
 
       - name: Restore ${{ github.base_ref }}-stats.json from cached
