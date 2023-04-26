@@ -26,6 +26,7 @@ jobs:
         with:
           path: |
             **/node_modules
+            temp.text
           key: yarn-${{ github.base_ref }}-${{ hashFiles('./yarn.lock') }}
           restore-keys: yarn-${{ github.base_ref }}
 
