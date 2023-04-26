@@ -25,6 +25,11 @@ jobs:
         key: yarn-${{ github.ref_name }}-${{ hashFiles('./yarn.lock') }}
         restore-keys: yarn-${{ github.ref_name }}
 
+    - name: Delete cache yarn
+      uses: snnaplab/delete-branch-cache-action@v1
+      with:
+        ref: ${{ github.ref_name }}
+
     - name: Install the dependencies
       run: |
         echo "Installing the dependancies on ${{ runner.os }} server hosted by GitHub!"
@@ -38,11 +43,16 @@ jobs:
         echo 'Copying app/build/stats.json -> ${{ github.ref_name }}-stats.json'
         cp 'app/build/stats.json' '${{ github.ref_name }}-stats.json'
 
-    - name: yarn cache
+    - name: stats cache
       id: stats-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
       uses: actions/cache@v3
       with:
         # A list of files, directories, and wildcard patterns to cache and restore
         path: |
           ${{ github.ref_name }}-stats.json
-        key: stats-${{ github.ref_name }}-${{ github.sha }}
+        key: stats-${{ github.ref_name }}
+
+    - name: Delete stats cache
+      uses: snnaplab/delete-branch-cache-action@v1
+      with:
+        ref: stats-${{ github.ref_name }}
