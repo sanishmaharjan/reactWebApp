@@ -58,14 +58,14 @@ jobs:
           key: stats-${{ github.base_ref }}-${{ github.event.pull_request.base.sha }}
 
       - name: Check file existence
-        if: !github.event.pull_request.merged
         id: check_files
+        if: !github.event.pull_request.merged
         uses: andstor/file-existence-action@v1
         with:
           files: '${{ github.base_ref }}-stats.json'
 
       - name: Diff between base & head
-        if:  steps.check_files.outputs.files_exists == 'true' && !github.event.pull_request.merged
+        if:  !github.event.pull_request.merged && steps.check_files.outputs.files_exists == 'true'
         uses: chronotruck/webpack-stats-diff-action@1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
