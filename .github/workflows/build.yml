@@ -9,6 +9,7 @@ on:
   
 jobs:
   build-web-app:
+    if: !github.event.pull_request.merged
     name: 'Build web app'
     runs-on: ubuntu-latest
     steps:
@@ -17,19 +18,10 @@ jobs:
           echo "Trigger web-app build on ${{ github.event_name }} event."
           echo "Checkout to yourbranch ${{ github.ref }}."
 
-      - name: Delete cache
-        if: github.event.pull_request.merged
-        uses: snnaplab/delete-branch-cache-action@v1
-        with:
-          # Specify explicitly because the ref at the time of merging will be a branch name such as 'main', 'develop'
-          ref: refs/pull/${{ github.event.number }}/merge
-
       - name: Check out repository code
-        if: !github.event.pull_request.merged
         uses: actions/checkout@v3
 
       - name: Restore cached
-        if: !github.event.pull_request.merged
         id: cache-restore
         uses: actions/cache@v3
         with:
@@ -40,17 +32,14 @@ jobs:
           restore-keys: yarn-${{ github.base_ref }}
 
       - name: Install the dependencies
-        if: !github.event.pull_request.merged
         run: |
           echo "Installing the dependancies on ${{ runner.os }} server hosted by GitHub!"
           yarn
 
       - name: build webpack
-        if: !github.event.pull_request.merged
         run : yarn build-webpack
 
       - name: Restore ${{ github.base_ref }}-stats.json from cached
-        if: !github.event.pull_request.merged
         id: stats-restore
         uses: actions/cache@v3
         with:
@@ -70,3 +59,19 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           base_stats_path: ${{ github.base_ref }}-stats.json
           head_stats_path: app/build/stats.json
+
+  cleanup:
+    name: 'Cleanup Caches'
+      if: github.event.pull_request.merged
+      runs-on: ubuntu-latest
+      steps:
+        - name: Get details
+          run: |
+            echo "Trigger web-app build on ${{ github.event_name }} event."
+            echo "Checkout to yourbranch ${{ github.ref }}."
+
+        - name: Delete cache
+          uses: snnaplab/delete-branch-cache-action@v1
+          with:
+            # Specify explicitly because the ref at the time of merging will be a branch name such as 'main', 'develop'
+            ref: refs/pull/${{ github.event.number }}/merge
