@@ -24,6 +24,7 @@ jobs:
       with:
         path: |
           **/node_modules
+          ${{ github.ref_name }}-stats.json
         key: cache-${{ github.ref_name }}
 
     - name: Install the dependencies
