@@ -8,7 +8,9 @@ on:
       - master
   
 jobs:
-  Web-App-Build:
+  build-web-app:
+    if: github.event.pull_request.merged == false
+    name: 'Build web app'
     runs-on: ubuntu-latest
     steps:
       - name: Get details
@@ -18,15 +20,17 @@ jobs:
 
       - name: Check out repository code
         uses: actions/checkout@v3
-        
-      - name: Cache
-        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
-        uses: actions/cache@v2.1.8
+
+      - name: Restore cached
+        id: cache-restore
+        uses: actions/cache@v3
         with:
-          # A list of files, directories, and wildcard patterns to cache and restore
-          path: "./node_modules"
-          key: yarn-${{ hashFiles('./yarn.lock') }}
-        
+          path: |
+            **/node_modules
+            temp.text
+          key: yarn-${{ github.base_ref }}-${{ hashFiles('./yarn.lock') }}
+          restore-keys: yarn-${{ github.base_ref }}
+
       - name: Install the dependencies
         run: |
           echo "Installing the dependancies on ${{ runner.os }} server hosted by GitHub!"
@@ -35,39 +39,39 @@ jobs:
       - name: build webpack
         run : yarn build-webpack
 
-      - name: Run bundle-stats
-        uses: vio/bundle-stats-action@v1
+      - name: Restore ${{ github.base_ref }}-stats.json from cached
+        id: stats-restore
+        uses: actions/cache@v3
         with:
-          webpack-stats-path: 'app/build/stats.json'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          path: '${{ github.base_ref }}-stats.json'
+          key: stats-${{ github.base_ref }}-${{ github.event.pull_request.base.sha }}
 
-  build-base:
-    name: 'Build base'
+      - name: Check file existence
+        id: check_files
+        uses: andstor/file-existence-action@v1
+        with:
+          files: '${{ github.base_ref }}-stats.json'
+
+      - name: Diff between base & head
+        if: steps.check_files.outputs.files_exists == 'true'
+        uses: chronotruck/webpack-stats-diff-action@1.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base_stats_path: ${{ github.base_ref }}-stats.json
+          head_stats_path: app/build/stats.json
+
+  cleanup:
+    if: github.event.pull_request.merged
+    name: 'Cleanup Caches'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-        with:
-          ## Here we do not checkout the current branch, but we checkout the base branch.
-          ref: ${{ github.base_ref }}
-
-      - name: Cache
-        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
-        uses: actions/cache@v2.1.8
-        with:
-          # A list of files, directories, and wildcard patterns to cache and restore
-          path: "./node_modules"
-          key: yarn-${{ hashFiles('./yarn.lock') }}
-
-      - name: Install the dependencies
+      - name: Get details
         run: |
-          echo "Installing the dependancies on ${{ runner.os }} server hosted by GitHub!"
-          yarn
+          echo "Trigger web-app build on ${{ github.event_name }} event."
+          echo "Checkout to yourbranch ${{ github.ref }}."
 
-      - name: build webpack
-        run: yarn build-webpack
-
-      - name: Upload stats.json
-        uses: actions/upload-artifact@v1
+      - name: Delete cache
+        uses: snnaplab/delete-branch-cache-action@v1
         with:
-          name: ${{ github.head_ref }}.${{ github.sha }}
-          path: 'app/build/stats.json'
+          # Specify explicitly because the ref at the time of merging will be a branch name such as 'main', 'develop'
+          ref: refs/pull/${{ github.event.number }}/merge
