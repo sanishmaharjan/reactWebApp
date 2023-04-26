@@ -59,7 +59,6 @@ jobs:
 
       - name: Check file existence
         id: check_files
-        if: !github.event.pull_request.merged
         uses: andstor/file-existence-action@v1
         with:
           files: '${{ github.base_ref }}-stats.json'
