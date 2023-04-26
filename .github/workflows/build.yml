@@ -27,9 +27,9 @@ jobs:
         with:
           path: |
             **/node_modules
-            temp.text
-          key: yarn-${{ github.base_ref }}-${{ hashFiles('./yarn.lock') }}
-          restore-keys: yarn-${{ github.base_ref }}
+            ${{ github.base_ref }}-stats.json
+          key: yarn-${{ github.head_ref }}-${{ hashFiles('./yarn.lock') }}
+          restore-keys: cache-${{ github.base_ref }}
 
       - name: Install the dependencies
         run: |
@@ -38,13 +38,6 @@ jobs:
 
       - name: build webpack
         run : yarn build-webpack
-
-      - name: Restore ${{ github.base_ref }}-stats.json from cached
-        id: stats-restore
-        uses: actions/cache@v3
-        with:
-          path: '${{ github.base_ref }}-stats.json'
-          key: stats-${{ github.base_ref }}-${{ github.event.pull_request.base.sha }}
 
       - name: Check file existence
         id: check_files
@@ -73,5 +66,4 @@ jobs:
       - name: Delete cache
         uses: snnaplab/delete-branch-cache-action@v1
         with:
-          # Specify explicitly because the ref at the time of merging will be a branch name such as 'main', 'develop'
           ref: refs/pull/${{ github.event.number }}/merge
