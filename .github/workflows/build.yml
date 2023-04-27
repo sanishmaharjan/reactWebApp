@@ -23,7 +23,7 @@ jobs:
 
       - name: Branch name
         run: |
-          $(echo HEAD_REF=${{ github.head_ref }} | sed -r 's/[\/]+/-/g') >> $GITHUB_ENV
+          echo $(HEAD_REF=${{ github.head_ref }} | sed -r 's/[\/]+/-/g') >> $GITHUB_ENV
 
       - name: Restore cached
         id: cache-restore
