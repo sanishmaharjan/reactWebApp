@@ -23,13 +23,14 @@ jobs:
 
       - name: Restore cached
         id: cache-restore
-        uses: actions/cache@v3
+        uses: actions/cache/restore@v3
         with:
           path: |
             **/node_modules
             ${{ github.base_ref }}-stats.json
-          key: yarn-${{ github.head_ref }}-${{ hashFiles('./yarn.lock') }}
-          restore-keys: cache-${{ github.base_ref }}
+          restore-keys:
+            yarn-${{ github.head_ref }}
+            cache-${{ github.base_ref }}
 
       - name: Install the dependencies
         run: |
@@ -44,6 +45,14 @@ jobs:
         uses: andstor/file-existence-action@v1
         with:
           files: '${{ github.base_ref }}-stats.json'
+
+      - name: save cache
+        uses: actions/cache/save@v3
+        with:
+          path: |
+            **/node_modules
+            ${{ github.base_ref }}-stats.json
+          key: yarn-${{ github.head_ref }}
 
       - name: Diff between base & head
         if: steps.check_files.outputs.files_exists == 'true'
