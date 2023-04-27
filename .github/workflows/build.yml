@@ -37,7 +37,7 @@ jobs:
             **/node_modules
             ${{ github.base_ref }}-stats.json
           key: |
-            yarn-${{ env.HEAD_REF }}
+            yarn-${{ github.head_ref }}
           restore-keys: |
             cache-${{ github.base_ref }}
 
