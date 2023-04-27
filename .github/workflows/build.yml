@@ -77,7 +77,6 @@ jobs:
       - name: Diff between base & head 2
         uses: github/webpack-bundlesize-compare-action@v1.5.0
         with:
-          title: Compate bunddle size
           github-token: ${{ secrets.GITHUB_TOKEN }}
           current-stats-json-path: app/build/stats.json
           base-stats-json-path: ${{ github.base_ref }}-stats.json
