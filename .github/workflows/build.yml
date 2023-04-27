@@ -38,7 +38,7 @@ jobs:
             **/node_modules
             ${{ github.base_ref }}-stats.json
           restore-keys:
-            yarn-$head_ref
+            yarn-${{ head_ref }}
             cache-${{ github.base_ref }}
 
       - name: Install the dependencies
