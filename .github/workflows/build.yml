@@ -74,6 +74,13 @@ jobs:
           base_stats_path: ${{ github.base_ref }}-stats.json
           head_stats_path: app/build/stats.json
 
+      - name: Diff between base & head 2
+        uses: github/webpack-bundlesize-compare-action@v1.5.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          current-stats-json-path: app/build/stats.json
+          base-stats-json-path: ${{ github.base_ref }}-stats.json
+
   cleanup:
     if: github.event.pull_request.merged
     name: 'Cleanup Caches'
