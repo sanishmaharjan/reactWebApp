@@ -23,21 +23,22 @@ jobs:
 
       - name: Get head ref
         env:
-          test: $(HEAD_REF=${{ github.head_ref }} | sed -r 's/[\/]+/-/g')
+          test: 'my value'
         run: |
+          echo $(HEAD_REF=${{ github.head_ref }} | sed -r 's/[\/]+/-/g') >> $GITHUB_ENV
           echo $test
 
       - name: Restore cached
         id: cache-restore
         env:
-          head_ref: $(HEAD_REF=${{ github.head_ref }} | sed -r 's/[\/]+/-/g')
+          head_ref: ${{ env.HEAD_REF }}
         uses: actions/cache/restore@v3
         with:
           path: |
             **/node_modules
             ${{ github.base_ref }}-stats.json
           restore-keys:
-            yarn-${{ env.HEAD_REF }}
+            yarn-$head_ref
             cache-${{ github.base_ref }}
 
       - name: Install the dependencies
