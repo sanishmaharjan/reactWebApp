@@ -23,11 +23,9 @@ jobs:
 
       - name: Get head ref
         env:
-          test: 'my value'
           head_ref: ${{ github.head_ref }}
         run: |
           echo HEAD_REF=$head_ref | sed -r 's/[\/]+/-/g' >> $GITHUB_ENV
-          echo $test
 
       - name: Restore cached
         id: cache-restore
@@ -38,7 +36,7 @@ jobs:
           path: |
             **/node_modules
             ${{ github.base_ref }}-stats.json
-          restore-keys:
+          restore-keys: |
             yarn-${{ env.HEAD_REF }}
             cache-${{ github.base_ref }}
 
