@@ -21,6 +21,10 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
 
+      - name: Branch name
+        run: |
+          echo HEAD_REF=${{ head_ref }} | sed -r 's/[\/]+/-/g' >> $GITHUB_ENV
+
       - name: Restore cached
         id: cache-restore
         uses: actions/cache/restore@v3
@@ -29,7 +33,7 @@ jobs:
             **/node_modules
             ${{ github.base_ref }}-stats.json
           restore-keys:
-            yarn-${{ github.head_ref }}
+            yarn-${{ ${{ head_ref }} | sed -r 's/[\/]+/-/g' }}
             cache-${{ github.base_ref }}
 
       - name: Install the dependencies
