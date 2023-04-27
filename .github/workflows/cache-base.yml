@@ -43,12 +43,17 @@ jobs:
     - name: Cleanup ${{ github.ref_name }} cache
       uses: snnaplab/delete-branch-cache-action@v1
 
-    - name: Upload stats.json
-      uses: actions/upload-artifact@v3
-      with:
-        name: base-stats
-        path: ${{ github.ref_name }}-stats.json
-        retention-days: 20
+    #- name: Download base artifact
+      #uses: actions/download-artifact@v3
+      #with:
+        #name: base-stats
+
+    #- name: Upload stats.json
+      #uses: actions/upload-artifact@v3
+      #with:
+        #name: base-stats
+        #path: ${{ github.ref_name }}-stats.json
+        #retention-days: 20
 
     - name: save cache
       id: save-cache
