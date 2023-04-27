@@ -26,7 +26,7 @@ jobs:
           test: 'my value'
           head_ref: ${{ github.head_ref }}
         run: |
-          echo HEAD_REF=$( $head_ref | sed -r 's/[\/]+/-/g') >> $GITHUB_ENV
+          echo HEAD_REF='$head_ref' | sed -r 's/[\/]+/-/g' >> $GITHUB_ENV
           echo $test
 
       - name: Restore cached
