@@ -70,7 +70,6 @@ jobs:
         if: steps.check_files.outputs.files_exists == 'true'
         uses: chronotruck/webpack-stats-diff-action@1.0.0
         with:
-          title: Compate bunddle size
           token: ${{ secrets.GITHUB_TOKEN }}
           base_stats_path: ${{ github.base_ref }}-stats.json
           head_stats_path: app/build/stats.json
@@ -78,6 +77,7 @@ jobs:
       - name: Diff between base & head 2
         uses: github/webpack-bundlesize-compare-action@v1.5.0
         with:
+          title: Compate bunddle size
           github-token: ${{ secrets.GITHUB_TOKEN }}
           current-stats-json-path: app/build/stats.json
           base-stats-json-path: ${{ github.base_ref }}-stats.json
