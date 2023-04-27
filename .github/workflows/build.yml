@@ -23,9 +23,8 @@ jobs:
 
       - name: Get head ref
         env:
-          test: 'my value'
+          test: $(HEAD_REF=${{ github.head_ref }} | sed -r 's/[\/]+/-/g')
         run: |
-          echo $(HEAD_REF=${{ github.head_ref }} | sed -r 's/[\/]+/-/g') >> $GITHUB_ENV
           echo $test
 
       - name: Restore cached
