@@ -22,11 +22,16 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Get head ref
+        env:
+          test: 'my value'
         run: |
           echo $(HEAD_REF=${{ github.head_ref }} | sed -r 's/[\/]+/-/g') >> $GITHUB_ENV
+          echo $test
 
       - name: Restore cached
         id: cache-restore
+        env:
+          head_ref: $(HEAD_REF=${{ github.head_ref }} | sed -r 's/[\/]+/-/g')
         uses: actions/cache/restore@v3
         with:
           path: |
