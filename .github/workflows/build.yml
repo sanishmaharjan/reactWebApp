@@ -29,8 +29,6 @@ jobs:
 
       - name: Restore cached
         id: cache-restore
-        env:
-          head_ref: ${{ env.HEAD_REF }}
         uses: actions/cache/restore@v3
         with:
           path: |
@@ -54,6 +52,11 @@ jobs:
         uses: andstor/file-existence-action@v1
         with:
           files: '${{ github.base_ref }}-stats.json'
+
+      - name: Cleanup ${{ github.ref_name }} cache
+        uses: snnaplab/delete-branch-cache-action@v1
+        with:
+          ref: refs/pull/${{ github.event.number }}/merge
 
       - name: save cache
         uses: actions/cache/save@v3
