@@ -25,8 +25,7 @@ jobs:
         env:
           test: 'my value'
         run: |
-          echo SENTRY_ORG=$(jq -r ".data.SENTRY_ORG" <<< $data) >> $GITHUB_ENV
-          echo HEAD_REF=$( github.head_ref | sed -r 's/[\/]+/-/g' <<< $github) >> $GITHUB_ENV
+          echo HEAD_REF=$( head_ref | sed -r 's/[\/]+/-/g' <<< $github.head_ref) >> $GITHUB_ENV
           echo $test
 
       - name: Restore cached
