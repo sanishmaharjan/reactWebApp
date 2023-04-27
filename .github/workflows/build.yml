@@ -24,7 +24,7 @@ jobs:
       - name: Get head ref
         env:
           test: 'my value'
-          head_ref: ${{ $github.head_ref }}
+          head_ref: ${{ github.head_ref }}
         run: |
           echo HEAD_REF=$( $head_ref | sed -r 's/[\/]+/-/g') >> $GITHUB_ENV
           echo $test
