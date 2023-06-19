@@ -9,7 +9,7 @@ on:
   
 jobs:
   build-web-app:
-    if: github.event.pull_request.merged == false
+    #if: github.event.pull_request.merged == false
     name: 'Build web app'
     runs-on: ubuntu-latest
     steps:
