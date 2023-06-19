@@ -91,7 +91,12 @@ jobs:
           echo "Trigger web-app build on ${{ github.event_name }} event."
           echo "Checkout to yourbranch ${{ github.ref }}."
 
-      - name: Delete cache
+      - name: Delete PR cache
         uses: snnaplab/delete-branch-cache-action@v1
         with:
           ref: refs/pull/${{ github.event.number }}/merge
+
+      - name: Delete branch cache
+        uses: snnaplab/delete-branch-cache-action@v1
+        with:
+          ref: ${{ github.ref }}
