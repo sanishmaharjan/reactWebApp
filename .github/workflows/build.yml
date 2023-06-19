@@ -18,6 +18,11 @@ jobs:
           echo "Trigger web-app build on ${{ github.event_name }} event."
           echo "Checkout to yourbranch ${{ github.ref }}."
 
+      - name: Dump GitHub context
+        env:
+        GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
       - name: Check out repository code
         uses: actions/checkout@v3
 
