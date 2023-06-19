@@ -20,8 +20,8 @@ jobs:
 
       - name: Dump GitHub context
         env:
-        GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          run: echo "$GITHUB_CONTEXT"
 
       - name: Check out repository code
         uses: actions/checkout@v3
