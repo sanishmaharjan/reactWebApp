@@ -1,0 +1,65 @@
+name: Cache base branch files
+run-name: Start cache ${{ github.ref }}
+on:
+  push:
+    branches: [ 'dev', 'master' ]
+jobs:
+  build-web-app-cache:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Cancel Previous Runs
+      uses: styfle/cancel-workflow-action@0.11.0
+
+    - name: Get details
+      run: |
+        echo "Trigger web-app build on ${{ github.event_name }} event."
+        echo "Checkout to yourbranch ${{ github.ref_name }}."
+
+    - name: Check out repository code
+      uses: actions/checkout@v3
+
+    - name: restore ${{ github.ref_name }} cache
+      id: yarn-cache
+      uses: actions/cache/restore@v3
+      with:
+        path: |
+          **/node_modules
+          ${{ github.ref_name }}-stats.json
+        key: cache-${{ github.ref_name }}
+
+    - name: Install the dependencies
+      run: |
+        echo "Installing the dependancies on ${{ runner.os }} server hosted by GitHub!"
+        yarn
+
+    - name: build webpack
+      run: yarn build-webpack
+
+    - name: Copy stats.json
+      run: |
+        echo 'Copying app/build/stats.json -> ${{ github.ref_name }}-stats.json'
+        cp 'app/build/stats.json' '${{ github.ref_name }}-stats.json'
+
+    - name: Cleanup ${{ github.ref_name }} cache
+      uses: snnaplab/delete-branch-cache-action@v1
+
+    #- name: Download base artifact
+      #uses: actions/download-artifact@v3
+      #with:
+        #name: base-stats
+
+    #- name: Upload stats.json
+      #uses: actions/upload-artifact@v3
+      #with:
+        #name: base-stats
+        #path: ${{ github.ref_name }}-stats.json
+        #retention-days: 20
+
+    - name: save cache
+      id: save-cache
+      uses: actions/cache/save@v3
+      with:
+        path: |
+          **/node_modules
+          ${{ github.ref_name }}-stats.json
+        key: cache-${{ github.ref_name }}

@@ -50,8 +50,9 @@ export default class ArticleBlock extends React.Component {
         };
 
         return <div style={style.wrapper}>
-            <h3 style={style.header}>{this.article.title}</h3>
-            <span style={style.date}>{this.publishDate}</span>
+            <h3 style={style.header}>{this.article.title}
+                (<span style={style.date}>{this.publishDate}</span>)
+            </h3>
             <p style={style.body}>{this.article.body}</p>
             <p style={style.author}>
                 <a href={this.author.website}>

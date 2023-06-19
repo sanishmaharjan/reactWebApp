@@ -1,0 +1,374 @@
+upload-coverage-report:
+    if: "github.event.pull_request.merged && contains(github.base_ref, 'staging')"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Use Node 16
+        uses: actions/setup-node@v2
+        with:
+          always-auth: true
+          node-version: "16"
+          registry-url: "https://npm.pkg.github.com"
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "coverage_report_dir=$(yarn cache dir)" >> $GITHUB_ENV
+
+      - name: Restore base ${{github.base_ref}} node_modules
+        uses: actions/cache@v3
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: '**/node_modules'
+          key: yarn-${{github.base_ref}}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-${{github.base_ref}}
+
+      - name: Install Dependencies
+        run: yarn
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.LAUDIO_GITHUB_TOKEN }}
+
+      - name: Prepare packages
+        run: yarn prepare:packages
+
+      - name: Run test
+        run: yarn test:coverage --runInBand
+        env:
+          CI: true
+
+      - name: Create test coverage artifact
+        id: create_test_cov_artifact
+        run: |
+          BUILD_NUM=$(echo $GITHUB_RUN_NUMBER)
+          FILE_NAME=base-lcov-${BUILD_NUM}.info
+          echo "cov_file_name=${FILE_NAME}" >> $GITHUB_ENV
+
+      - name: Upload code coverage for ref branch
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.cov_file_name }}
+          path: ./coverage/lcov.info
+          retention-days: 15
+
+build2:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel Previous Runs
+        if: github.event_name == 'pull_request' && !github.event.pull_request.merged
+        uses: styfle/cancel-workflow-action@0.5.0
+        with:
+          access_token: ${{ secrets.LAUDIO_GITHUB_TOKEN }}
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.LAUDIO_GITHUB_TOKEN }}
+
+      - name: Use Node 16
+        uses: actions/setup-node@v2
+        with:
+          always-auth: true
+          node-version: "16"
+          registry-url: "https://npm.pkg.github.com"
+
+      - name: Restore base ${{github.base_ref}} node_modules
+        uses: actions/cache@v3
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: '**/node_modules'
+          key: yarn-${{github.base_ref}}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-${{github.base_ref}}
+
+      - name: Install Dependencies
+        run: yarn
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.LAUDIO_GITHUB_TOKEN }}
+
+      - name: Get specific changed files
+        if: github.event_name != 'workflow_dispatch' && !github.event.pull_request.merged
+        id: changed-files-specific
+        uses: tj-actions/changed-files@v17
+        with:
+          files: |
+            package.json
+            yarn.lock
+
+      - name: Restore ${{github.base_ref}} branch cache for webpack stats.json file
+        uses: actions/cache/restore@v3
+        id: stats-json-cache
+        with:
+          path: '${{github.base_ref}}-stats.json'
+          key: stats-json-${{github.base_ref}}-${{ github.event.pull_request.base.sha }}
+
+      - name: Check if stats.json file exist
+        id: check_stats_files
+        uses: andstor/file-existence-action@v2
+        with:
+          files: "${{github.base_ref}}-stats.json"
+
+      - name: Build and Compare Bundle Size
+        if: steps.check_stats_files.outputs.files_exists == 'false' && github.event_name == 'pull_request' && !github.event.pull_request.merged && ((steps.changed-files-specific.outputs.any_changed == 'true' && contains(github.base_ref, 'dev')) || !contains(github.base_ref, 'dev'))
+        uses: preactjs/compressed-size-action@v2
+        env:
+          CI: false
+          NODE_AUTH_TOKEN: ${{ secrets.LAUDIO_GITHUB_TOKEN }}
+        with:
+          build-script: "build"
+          repo-token: "${{ secrets.LAUDIO_GITHUB_TOKEN }}"
+          pattern: "**/build/**/*.js"
+          exclude: "{**/*.map,**/node_modules/**}"
+          strip-hash: "\\b\\w{8}\\."
+          minimum-change-threshold: 1000
+
+      - name: Connect VPN
+        if: ${{ github.event.inputs.environment != '' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install openvpn --fix-missing
+          echo -e "${{ secrets.VPN_USER }}\n${{ secrets.VPN_PASS }}" > ~/.vpncreds
+          sudo openvpn --config config.ovpn --auth-user-pass ~/.vpncreds --daemon
+          sleep 10s
+
+      - name: Get Env From Vault
+        if: ${{ github.event.inputs.environment != '' }}
+        env:
+          VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
+          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+        run: |
+          branch_name=$(echo ${{ github.event.inputs.environment }} || echo ${GITHUB_REF#refs/*/})
+          echo "Branch name: $branch_name"
+          data=$(curl --location --request GET "${{ env.VAULT_ADDR }}/v1/laudio/$branch_name/app/deploy" \
+          --header "X-Vault-Token: ${{ env.VAULT_TOKEN }}")
+          echo SENTRY_AUTH_TOKEN=$(jq -r ".data.SENTRY_AUTH_TOKEN" <<< $data) >> $GITHUB_ENV
+          echo SENTRY_ORG=$(jq -r ".data.SENTRY_ORG" <<< $data) >> $GITHUB_ENV
+          echo SENTRY_PROJECT=$(jq -r ".data.SENTRY_PROJECT" <<< $data) >> $GITHUB_ENV
+          echo REACT_APP_API_BASE_URI=$(jq -r ".data.REACT_APP_API_BASE_URI" <<< $data) >> $GITHUB_ENV
+          echo REACT_APP_LAUNCHDARKLY_CLIENT_KEY=$(jq -r ".data.REACT_APP_LAUNCHDARKLY_CLIENT_KEY" <<< $data) >> $GITHUB_ENV
+          echo REACT_APP_MIXPANEL_ACCESS_TOKEN=$(jq -r ".data.REACT_APP_MIXPANEL_ACCESS_TOKEN" <<< $data) >> $GITHUB_ENV
+          echo REACT_APP_PUSHER_APP_CLUSTER=$(jq -r ".data.REACT_APP_PUSHER_APP_CLUSTER" <<< $data) >> $GITHUB_ENV
+          echo REACT_APP_PUSHER_APP_KEY=$(jq -r ".data.REACT_APP_PUSHER_APP_KEY" <<< $data) >> $GITHUB_ENV
+          echo REACT_APP_ZENDESK_SNIPPET_KEY=$(jq -r ".data.REACT_APP_ZENDESK_SNIPPET_KEY" <<< $data) >> $GITHUB_ENV
+
+      - name: Build Web app
+        if: github.event.pull_request.merged || github.event_name == 'workflow_dispatch' || steps.changed-files-specific.outputs.any_changed != 'true'
+        env:
+          CI: false
+          NODE_AUTH_TOKEN: ${{ secrets.LAUDIO_GITHUB_TOKEN }}
+          REACT_APP_API_BASE_URI: ${{ env.REACT_APP_API_BASE_URI }}
+          REACT_APP_LAUNCHDARKLY_CLIENT_KEY: ${{ env.REACT_APP_LAUNCHDARKLY_CLIENT_KEY }}
+          REACT_APP_MIXPANEL_ACCESS_TOKEN: ${{ env.REACT_APP_MIXPANEL_ACCESS_TOKEN }}
+          REACT_APP_PUSHER_APP_CLUSTER: ${{ env.REACT_APP_PUSHER_APP_CLUSTER }}
+          REACT_APP_PUSHER_APP_KEY: ${{ env.REACT_APP_PUSHER_APP_KEY }}
+          REACT_APP_ZENDESK_SNIPPET_KEY: ${{ env.REACT_APP_ZENDESK_SNIPPET_KEY }}
+        run: |
+          yarn build
+
+      # stats.json file contain all the information of the webpack bundle final
+      # output hence comparing branch specific stats.json restored from cache and
+      # the latest from this PR
+      - name: Compare webpack bundle size
+        if: steps.check_stats_files.outputs.files_exists == 'true' &&  github.event_name == 'pull_request' && !github.event.pull_request.merged && ((steps.changed-files-specific.outputs.any_changed == 'true' && contains(github.base_ref, 'dev')) || !contains(github.base_ref, 'dev'))
+        uses: chronotruck/webpack-stats-diff-action@1.3.0
+        with:
+          base_stats_path: '${{github.base_ref}}-stats.json'
+          head_stats_path: 'stats.json'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          comment_title: 'Compare stats.json of webpack bundle'
+
+      - name: Create Artifact
+        if: github.event.pull_request.merged || github.event_name == 'workflow_dispatch'
+        id: create_artifact
+        run: |
+          BUILD_NUM=$(echo $GITHUB_RUN_NUMBER)
+          TIMESTAMP=$(date -u +%Y%m%d%H%M%S)
+          BUILD_ID=$(echo $GITHUB_SHA | head -c7)
+          VERSION=web-app+build.${BUILD_NUM}.${TIMESTAMP}.${BUILD_ID}
+          ARTIFACT_NAME=${VERSION}.zip
+          zip -r9q ${{ github.workspace }}/${ARTIFACT_NAME} build && cd ..
+          ls -al ${{ github.workspace }}
+          echo $ARITFACT_NAME
+          echo "version=${VERSION}" >> $GITHUB_ENV
+          echo "artifact_name=${ARTIFACT_NAME}" >> $GITHUB_ENV
+
+      - name: Upload Artifact
+        if: github.event.pull_request.merged || github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.version }}
+          path: ./${{ env.artifact_name }}
+          retention-days: 1 # TODO: Change it to 14 days after this workflow is operational
+    outputs:
+      artifact_name: "${{ env.version }}"
+
+  release:
+    if: "(github.event.pull_request.merged && contains(github.base_ref, 'main') && (contains(github.head_ref, 'staging') || contains(github.head_ref, 'hotfix/')))"
+    runs-on: "ubuntu-latest"
+    needs: [build]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Semver Bash
+        run: |
+          sudo curl https://raw.githubusercontent.com/fsaintjacques/semver-tool/2.1.0/src/semver -o /usr/local/bin/semversion && sudo chmod +x /usr/local/bin/semversion
+          semversion --version
+      - name: Generate new version
+        id: get_version
+        env:
+          GITHUB_USER: ${{ secrets.GITHUB_USER }}
+          GITHUB_TOKEN: ${{ secrets.LAUDIO_GITHUB_TOKEN }}
+        run: |
+          BASE_BRANCH=${{ github.base_ref }}
+          HEAD_REF_BRANCH=${{ github.head_ref }}
+          REF_BRANCH=${{ github.ref_name }}
+          event_name=${{ github.event_name }}
+          curr_version=$(cat package.json | jq -r ".version")
+          git fetch --tags --all > /dev/null
+          latest_tagged_version=$(git describe --tags $(git rev-list --tags --max-count=1))
+          echo "Current version: $curr_version"
+          echo "Latest tagged version: $latest_tagged_version"
+
+          should_skip_commit=false
+          if [[ "$curr_version" != $latest_tagged_version ]]; then
+            release_version=$curr_version
+            should_skip_commit=true
+          else
+            if [[ $HEAD_REF_BRANCH == "staging" ]]; then
+              new_package_version=$(semversion bump minor "$curr_version")
+            fi
+
+            if [[ $HEAD_REF_BRANCH == "hotfix/"* ]]; then
+              new_package_version=$(semversion bump patch "$curr_version")
+            fi
+            release_version=$new_package_version
+          fi
+
+          echo "Version to be updated: $release_version"
+          echo "release_version=${release_version}" >> $GITHUB_ENV
+          echo "should_skip_commit=${should_skip_commit}" >> $GITHUB_ENV
+
+      - name: Update package.json
+        if: ${{ contains(env.should_skip_commit, 'false') }}
+        run: |
+          pkg_version=$(cat package.json | jq -r ".version")
+          git pull origin ${{ github.base_ref || github.ref_name }}
+          sed -i -E "0,/${pkg_version}/ s/${pkg_version}/${{ env.release_version }}/" package.json
+
+      - name: Commit New Version
+        if: ${{ contains(env.should_skip_commit, 'false') }}
+        run: |
+          git config --global user.name "Brother"
+          git config --global user.email "bot@laudio.com"
+          git add package.json
+          git commit -m "Bump package json."
+
+      - name: Push to branch
+        if: ${{ contains(env.should_skip_commit, 'false') }}
+        uses: CasperWA/push-protected@v2
+        with:
+          token: ${{ secrets.LAUDIO_GITHUB_TOKEN }}
+          branch: ${{ github.base_ref || github.ref_name }}
+
+      # Trigger Release workflow
+      - name: Invoke Release Workflow
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: Release Artifact
+          token: ${{ secrets.LAUDIO_GITHUB_TOKEN }}
+          inputs: '{ "version": "${{ env.release_version }}", "build": "${{ needs.build.outputs.artifact_name }}"}'
+
+  deploy:
+    if: "(github.event_name == 'workflow_dispatch')"
+    runs-on: "ubuntu-latest"
+    needs: [build]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Get Server name
+        id: get_server
+        run: |
+          server=$(echo ${{ github.event.inputs.environment }})
+          echo "server=${server}" >> $GITHUB_ENV
+
+      # Trigger Deploy workflow
+      - name: Invoke Deploy Workflow
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: Web App - Deploy
+          token: ${{ secrets.LAUDIO_GITHUB_TOKEN }}
+          inputs: '{ "version": "${{ needs.build.outputs.artifact_name }}", "environment": "${{ env.server }}" }'
+
+  sentry:
+    needs: build
+    runs-on: ubuntu-latest
+
+    if: github.event_name == 'push' && github.ref != 'refs/heads/dev'
+
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.5.0
+        with:
+          access_token: ${{ secrets.LAUDIO_GITHUB_TOKEN }}
+
+      - uses: actions/checkout@v3
+
+      - name: Use Node 16
+        uses: actions/setup-node@v2
+        with:
+          always-auth: true
+          node-version: "16"
+          registry-url: "https://npm.pkg.github.com"
+          cache: "yarn"
+          cache-dependency-path: "**/yarn.lock"
+
+      - name: Install Dependencies
+        run: yarn
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.LAUDIO_GITHUB_TOKEN }}
+
+      - name: Build
+        run: |
+          yarn lerna run prepare
+          yarn build
+        env:
+          CI: false
+
+      - name: Install OpenVPN
+        run: |
+          sudo apt-get update
+          sudo apt-get install openvpn
+
+      - name: Connect to VPN
+        run: |
+          echo -e "${{ secrets.VPN_USER }}\n${{ secrets.VPN_PASS }}" > ~/.vpncreds
+          sudo openvpn --config config.ovpn --auth-user-pass ~/.vpncreds --daemon
+          sleep 10s
+        env:
+          VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
+          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+
+      - name: Get Sentry Auth Parameters
+        env:
+          VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
+          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+        run: |
+          branch_name=${GITHUB_REF#refs/*/}
+          data=$(curl --location --request GET "${{ env.VAULT_ADDR }}/v1/laudio/$branch_name/app/deploy" \
+          --header "X-Vault-Token: ${{ env.VAULT_TOKEN }}")
+          echo SENTRY_AUTH_TOKEN=$(jq -r ".data.SENTRY_AUTH_TOKEN" <<< $data) >> $GITHUB_ENV
+          echo SENTRY_ORG=$(jq -r ".data.SENTRY_ORG" <<< $data) >> $GITHUB_ENV
+          echo SENTRY_PROJECT=$(jq -r ".data.SENTRY_PROJECT" <<< $data) >> $GITHUB_ENV
+
+      - name: Upload Sourcemaps to Sentry
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ env.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ env.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ env.SENTRY_PROJECT }}
+        with:
+          sourcemaps: "build"
+          url_prefix: "~/"
