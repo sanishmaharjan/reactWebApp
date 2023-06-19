@@ -1,6 +1,16 @@
 name: Build
 run-name: ${{ github.actor }} start build webApp 🚀
 on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment
+        required: true
+        type: choice
+        options:
+          - "dev"
+          - "qa"
+
   pull_request:
     types: [synchronize, closed, opened]
     branches:
